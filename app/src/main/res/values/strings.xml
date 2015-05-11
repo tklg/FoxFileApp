@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">FoxFile Login</string>
+
+    <string name="hello_world">A</string>
+    <string name="action_settings">Settings</string>
+    <string name="string_username">Username</string>
+    <string name="string_password">Password</string>
+    <string name="string_login">Login</string>
+</resources>
