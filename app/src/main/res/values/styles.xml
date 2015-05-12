@@ -1,8 +1,40 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <style name="FoxFile" parent="android:Theme.Material">
+        <item name="android:background">@color/background</item>
+        <item name="android:actionBarStyle">@style/actionbar</item>
     </style>
-
+    <style name="actionbar" parent="@android:style/Widget.Material.ActionBar">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:background">@color/primary</item>
+    </style>
+    <style name="title" parent="android:Theme.Material">
+        <item name="android:textSize">@dimen/font_title</item>
+        <!--<item name="font:typeface">ROBOTO-REGULAR.ttf</item>-->
+    </style>
+    <style name="title_fox" parent="title">
+        <item name="android:textColor">@color/primary</item>
+    </style>
+    <style name="title_file" parent="title">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    <style name="input" parent="android:Theme.Material">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:background">@color/background_secondary</item>
+        <item name="android:textSize">55px</item>
+        <item name="android:paddingLeft">20px</item>
+        <item name="android:paddingTop">20px</item>
+        <item name="android:paddingBottom">20px</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    <style name="btn_submit" parent="android:Theme.Material">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:background">@color/primary</item>
+        <item name="android:textSize">55px</item>
+        <item name="android:paddingLeft">20px</item>
+        <item name="android:paddingTop">20px</item>
+        <item name="android:paddingBottom">20px</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
 </resources>

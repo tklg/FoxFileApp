@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="background">#ff222222</color>
+    <color name="background_secondary">#ff2f2f2f</color>
+    <color name="text_primary">#ffcccccc</color>
+    <color name="text_secondary">#ff606060</color>
+    <color name="primary">#fffa6500</color>
+    <color name="secondary">#ff61391d</color>
+    <color name="divider">#ff373737</color>
+
+</resources>
