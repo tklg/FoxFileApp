@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.goebl.david.Webb;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -18,10 +20,13 @@ import java.util.Map;
 
 public class MainActivity extends Activity {
 
+    private Webb webb;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        webb = Webb.create();
     }
 
     @Override
@@ -55,41 +60,23 @@ public class MainActivity extends Activity {
         } else if (pass.equals("")) {
             toast("Please enter a Password.");
         } else {
-            if (isFirstTimeChecking) {
-                for (int i = 0; i < 3; i++) {
-                    login(user, pass); //spam this a few times to make sure it works the first time :D
-                }
-                isFirstTimeChecking = false;
-            }
             if (!login(user, pass)) {
                 toast("Username or password is incorrect.");
             } else {
                 Intent intentBrowse = new Intent(this, Browse.class);
                 intentBrowse.putExtra("PHPSESSID", user);
-                ast.cancel(true);
                 startActivity(intentBrowse);
             }
         }
     }
-    private AsyncTask ast;
     public boolean login(String u, String p) {
-
-        //AsyncTask ast = new AsyncLoginTask().execute("check_username", u);
-        //AsyncTask ast2;
-
-        //if (ast.toString().equals("0")) { //if returns '0', user exists
-            //ast2 = new AsyncLoginTask().execute("login", u, p);
-            //System.out.println("[MainActivity]: " + ast2.toString());
-        //} else {
-        //    System.out.println("[MainActivity]: " + "User " + u + " does not exist.");
-        //}
-        ast = new AsyncLoginTask().execute(u, p);
-        String res = ((AsyncTask) ast).toString();
-        System.out.println("[MainActivity:login]: " + res);
-        //ast.cancel(false);
+        PostRequest post = new PostRequest(webb, "login", u, p);
+        post.start();
+        String res = post.getResponse();
+        toast(res);
         return res.equals("valid");
     }
     public void toast(String o) {
-        Toast.makeText(getApplicationContext(), o.toString(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), o, Toast.LENGTH_SHORT).show();
     }
 }
