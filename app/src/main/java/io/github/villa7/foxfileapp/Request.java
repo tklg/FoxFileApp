@@ -27,7 +27,7 @@ public class Request extends Thread {
     public void run() {
         //Webb webb = Webb.create();
         webb.setBaseUri("http://lucianoalberto.zapto.org/foxfile");
-        webb.setDefaultHeader(Webb.HDR_USER_AGENT, "Const.UA");
+        webb.setDefaultHeader(Webb.HDR_USER_AGENT, System.getProperty("http.agent"));
         Object res = "";
         if (type.equals("login")) {
             String u = params[1];
@@ -86,7 +86,7 @@ public class Request extends Thread {
     }
     public Object getResponse() {
         while (!done) {
-            System.out.println("sleep");
+            System.out.println("waiting for response");
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

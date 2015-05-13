@@ -7,6 +7,11 @@ import android.widget.Toast;
  */
 class F {
 
-
+    public static void nl(Object o) {
+        System.out.println(o);
+    }
+    public static void nl() {
+        System.out.println();
+    }
 
 }

@@ -3,16 +3,19 @@ package io.github.villa7.foxfileapp;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.Toast;
 
 
 import com.goebl.david.Webb;
@@ -28,7 +31,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     private Webb webb;
     private String phpsessid;
     private String user;
-    private ArrayList folderBeingViewed = new ArrayList(); //store folder hashes in here
+    private ArrayList<String> folderBeingViewed = new ArrayList<String>(); //store folder hashes in here
+    private ArrayList<FileItem> files;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,28 +46,62 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         user = intent.getStringExtra("username");
         System.out.println("user: " + user + "\nsessid: " + phpsessid);
 
-        Request post = new Request(webb, phpsessid, "dir", user, "folder");
-        //Request post = new Request(webb, phpsessid, "phpsession");
-        System.out.println("GET with dir=" + user + " and type=folder");
-        post.start();
-        JSONArray res = (JSONArray) post.getResponse();
-
-        ArrayList<FileItem> files = FileItem.fromJSON(res);
-        //System.out.println(files);
-        FileItemAdapter adapter = new FileItemAdapter(this, files);
-
-        ListView listView = (ListView) findViewById(R.id.menubar);
-
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(this);
-        listView.setOnItemLongClickListener(this);
-        listView.setOnItemSelectedListener(this);
-
         //setContentView(listView);
+
+        open(user, "folder"); //open the root directory to start
+    }
+
+    private void open(String fileHash, String type) {
+        F.nl("opening " + fileHash + " of type " + type);
+        if (type.equals("folder")) {
+            Request post = new Request(webb, phpsessid, "dir", fileHash, type);
+            //Request post = new Request(webb, phpsessid, "phpsession");
+            System.out.println("POST ?dir=" + fileHash + "&type=" + type);
+            post.start();
+            JSONArray res = (JSONArray) post.getResponse();
+
+            files = FileItem.fromJSON(res);
+            //System.out.println(files);
+            FileItemAdapter adapter = new FileItemAdapter(this, files);
+
+            ListView listView = (ListView) findViewById(R.id.menubar);
+
+            listView.setAdapter(adapter);
+            listView.setOnItemClickListener(this);
+            listView.setOnItemLongClickListener(this);
+            listView.setOnItemSelectedListener(this);
+        } else {
+            F.nl("Type of opened file not \"folder\", was \"" + type + "\"");
+        }
+
+        if (!folderBeingViewed.contains(fileHash)) {
+            folderBeingViewed.add(fileHash);
+        } else {
+            F.nl("arraylist already has folder, was the back button pressed?");
+        }
     }
 
     public void onItemClick(AdapterView<?> l, View v, int position, long id) {
-        System.out.println("clicked pos: " + position);
+        System.out.println("Pressed: " + position);
+
+        //View view = LayoutInflater.from().inflate(R.layout.layout_file, parent, false);
+        LinearLayout layout = (LinearLayout) v.findViewById(R.id.layout_file);
+        TextView name = (TextView) layout.findViewById(R.id.fileName);
+        String fileName = name.getText().toString();
+
+        String hash = null;
+        String type = "folder";
+        for (FileItem f : files) {
+            if (f.getName().equals(fileName)) {
+                hash = f.getHash();
+                type = f.getType();
+            }
+        }
+        if (hash == null) hash = user; //default to home dir
+
+        F.nl("Name: " + fileName);
+        F.nl("Hash: " + hash);
+        open(hash, type);
     }
     public boolean onItemLongClick(AdapterView<?> l, View v, int position, long id) {
         System.out.println("held pos: " + position);
@@ -74,6 +112,17 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     }
     public void onNothingSelected(AdapterView<?> l) {
         System.out.println("nothing selected");
+    }
+    @Override
+    public void onBackPressed() {
+        F.nl("back button pressed");
+        if (folderBeingViewed.size() == 1) {
+            finish(); //ends the activity
+        } else {
+            F.nl("going back");
+            folderBeingViewed.remove(folderBeingViewed.size() - 1);
+            open(folderBeingViewed.get(folderBeingViewed.size() - 1), "folder");
+        }
     }
 
     @Override
@@ -96,5 +145,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    public void toast(String o) {
+        Toast.makeText(getApplicationContext(), o, Toast.LENGTH_SHORT).show();
     }
 }
