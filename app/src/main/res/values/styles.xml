@@ -1,14 +1,17 @@
 <resources>
-
     <!-- Base application theme. -->
     <style name="FoxFile" parent="android:Theme.Material">
         <item name="android:background">@color/background</item>
-        <item name="android:actionBarStyle">@style/actionbar</item>
+        <!--<item name="android:actionBarStyle">@style/ToolbarStyle</item>-->
+        <!--<item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>-->
     </style>
-    <style name="actionbar" parent="@android:style/Widget.Material.ActionBar">
-        <item name="android:textColor">@color/text_primary</item>
+    <!--<style name="ToolbarStyle" parent="android:ThemeOverlay.Material.Dark.ActionBar">
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="actionMenuTextColor">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="android:background">@color/primary</item>
-    </style>
+    </style>-->
     <style name="title" parent="android:Theme.Material">
         <item name="android:textSize">@dimen/font_title</item>
         <!--<item name="font:typeface">ROBOTO-REGULAR.ttf</item>-->
@@ -36,5 +39,12 @@
         <item name="android:paddingTop">20px</item>
         <item name="android:paddingBottom">20px</item>
         <item name="android:fontFamily">sans-serif</item>
+    </style>
+    <style name="filename" parent="android:Theme.Material">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">20dp</item>
+    </style>
+    <style name="fileinfo" parent="android:Theme.Material">
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
 </resources>

@@ -5,32 +5,36 @@ import com.goebl.david.Webb;
 /**
  * Created by kluget on 5/12/2015.
  */
-public class PostRequest extends Thread {
+public class Request extends Thread {
 
     private String type = "";
     private String[] params;
-    private String response;
+    private Object response;
     private Webb webb;
     private boolean done;
+    private static String phpsessid;
+    private static String user;
 
-    public PostRequest(Webb webb, String... params) {
+    public Request(Webb webb, String phpsessid, String... params) {
         this.webb = webb;
         this.type = params[0];
         this.params = params;
         this.response = "";
         this.done = false;
+        this.phpsessid = phpsessid;
     }
 
     public void run() {
         //Webb webb = Webb.create();
         webb.setBaseUri("http://lucianoalberto.zapto.org/foxfile");
         webb.setDefaultHeader(Webb.HDR_USER_AGENT, "Const.UA");
-        String res = "";
-
+        Object res = "";
         if (type.equals("login")) {
             String u = params[1];
+            user = u;
             String p = params[2];
             res = webb.post("/uauth.php")
+                    .param("SETSESSIONID", phpsessid)
                     .param("login", "yes")
                     .param("username", u)
                     .param("password", p)
@@ -40,8 +44,34 @@ public class PostRequest extends Thread {
         } else if (type.equals("check_username")) {
             String u = params[1];
             res = webb.post("/uauth.php")
+                    .param("SETSESSIONID", phpsessid)
                     .param("check_username", "yes")
                     .param("username", u)
+                    .ensureSuccess()
+                    .asString()
+                    .getBody();
+        } else if (type.equals("getsessionid")) {
+            res = webb.post("/uauth.php")
+                    .param("GETSESSIONID", "yespls")
+                    .ensureSuccess()
+                    .asString()
+                    .getBody();
+        } else if (type.equals("dir")) {
+            String dir = params[1];
+            String fileType = params[2];
+            //webb.post("/dbquery.php").param("SETSESSIONID", phpsessid);
+            System.out.println("Setting phpsessid to " + phpsessid);
+            res = webb.post("/dbquery.php")
+                    .param("SETSESSIONID", phpsessid)
+                    .param("dir", dir)
+                    .param("type", fileType)
+                    .ensureSuccess()
+                    .asJsonArray()
+                    .getBody();
+        } else if (type.equals("phpsession")) {
+            System.out.println("[Request]: phpsessid = " + phpsessid);
+            res = webb.post("/dbquery.php")
+                    .param("SETSESSIONID", phpsessid)
                     .ensureSuccess()
                     .asString()
                     .getBody();
@@ -49,8 +79,12 @@ public class PostRequest extends Thread {
         System.out.println("response: " + res);
         response = res;
         done = true;
+        //return res;
     }
-    public String getResponse() {
+    public String send() {
+        return null;
+    }
+    public Object getResponse() {
         while (!done) {
             System.out.println("sleep");
             try {
