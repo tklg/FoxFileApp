@@ -44,19 +44,17 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         Intent intent = getIntent();
         phpsessid = intent.getStringExtra("phpsessid");
         user = intent.getStringExtra("username");
-        System.out.println("user: " + user + "\nsessid: " + phpsessid);
-
-        //setContentView(listView);
+        F.nl("user:\t" + user + "\nsessid:\t" + phpsessid);
 
         open(user, "folder"); //open the root directory to start
     }
 
     private void open(String fileHash, String type) {
-        F.nl("opening " + fileHash + " of type " + type);
+        F.nl("opening " + fileHash);
         if (type.equals("folder")) {
             Request post = new Request(webb, phpsessid, "dir", fileHash, type);
             //Request post = new Request(webb, phpsessid, "phpsession");
-            System.out.println("POST ?dir=" + fileHash + "&type=" + type);
+            F.nl("POST ?dir=" + fileHash + "&type=" + type);
             post.start();
             JSONArray res = (JSONArray) post.getResponse();
 
@@ -72,6 +70,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             listView.setOnItemSelectedListener(this);
         } else {
             F.nl("Type of opened file not \"folder\", was \"" + type + "\"");
+            F.nl("POST ?preview=" + fileHash); //not how the preview query works (returns an image)
+            //maybe have FileViewer activity here
+            //or have a slidy bar from the right like Google Drive with preview and options
         }
 
         if (!folderBeingViewed.contains(fileHash)) {
@@ -82,7 +83,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     }
 
     public void onItemClick(AdapterView<?> l, View v, int position, long id) {
-        System.out.println("Pressed: " + position);
+        F.nl("Pressed: " + position);
 
         //View view = LayoutInflater.from().inflate(R.layout.layout_file, parent, false);
         LinearLayout layout = (LinearLayout) v.findViewById(R.id.layout_file);
@@ -91,12 +92,16 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
 
         String hash = null;
         String type = "folder";
-        for (FileItem f : files) {
+        /*for (FileItem f : files) {
             if (f.getName().equals(fileName)) {
                 hash = f.getHash();
                 type = f.getType();
             }
-        }
+        }*/
+        FileItem f = files.get(position);
+        hash = f.getHash();
+        type = f.getType();
+        
         if (hash == null) hash = user; //default to home dir
 
         F.nl("Name: " + fileName);
@@ -113,12 +118,19 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     public void onNothingSelected(AdapterView<?> l) {
         System.out.println("nothing selected");
     }
+    boolean bbPressed = false;
     @Override
     public void onBackPressed() {
         F.nl("back button pressed");
         if (folderBeingViewed.size() == 1) {
-            finish(); //ends the activity
+            if (!bbPressed) {
+                bbPressed = true;
+                toast("Press again to log out");
+            } else if (bbPressed) {
+                finish(); //ends the activity
+            }
         } else {
+            bbPressed = false;
             F.nl("going back");
             folderBeingViewed.remove(folderBeingViewed.size() - 1);
             open(folderBeingViewed.get(folderBeingViewed.size() - 1), "folder");
@@ -146,7 +158,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
 
         return super.onOptionsItemSelected(item);
     }
-    public void toast(String o) {
-        Toast.makeText(getApplicationContext(), o, Toast.LENGTH_SHORT).show();
+    public void toast(String s) {
+        Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
     }
 }
