@@ -22,6 +22,10 @@
             android:name=".Browse"
             android:label="@string/title_activity_browse" >
         </activity>
+        <activity
+            android:name=".FileViewer"
+            android:label="@string/title_activity_file_viewer" >
+        </activity>
     </application>
 
 </manifest>

@@ -31,8 +31,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     private Webb webb;
     private String phpsessid;
     private String user;
-    private ArrayList<String> folderBeingViewed = new ArrayList<String>(); //store folder hashes in here
-    private ArrayList<FileItem> files;
+    private String fileName;
+    private static ArrayList<String> folderBeingViewed = new ArrayList<String>(); //store folder hashes in here
+    private static ArrayList<FileItem> files;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,11 +69,21 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             listView.setOnItemClickListener(this);
             listView.setOnItemLongClickListener(this);
             listView.setOnItemSelectedListener(this);
+
+            setTitle(fileName);
         } else {
             F.nl("Type of opened file not \"folder\", was \"" + type + "\"");
             F.nl("POST ?preview=" + fileHash); //not how the preview query works (returns an image)
             //maybe have FileViewer activity here
             //or have a slidy bar from the right like Google Drive with preview and options
+
+            //if new page doesnt keep this page state, use a modal
+            Intent intentView = new Intent(this, FileViewer.class);
+            intentView.putExtra("phpsessid", phpsessid);
+            intentView.putExtra("username", user);
+            intentView.putExtra("filehash", fileHash);
+            intentView.putExtra("filetype", type);
+            startActivity(intentView);
         }
 
         if (!folderBeingViewed.contains(fileHash)) {
@@ -89,6 +100,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         LinearLayout layout = (LinearLayout) v.findViewById(R.id.layout_file);
         TextView name = (TextView) layout.findViewById(R.id.fileName);
         String fileName = name.getText().toString();
+        this.fileName = fileName;
 
         String hash = null;
         String type = "folder";

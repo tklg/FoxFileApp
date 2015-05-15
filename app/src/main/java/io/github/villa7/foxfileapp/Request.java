@@ -75,6 +75,14 @@ public class Request extends Thread {
                     .ensureSuccess()
                     .asString()
                     .getBody();
+        } else if (type.equals("read_file")) {
+            String hash = params[1];
+            res = webb.post("/dbquery.php")
+                    .param("SETSESSIONID", phpsessid)
+                    .param("read_file", hash)
+                    .ensureSuccess()
+                    .asString()
+                    .getBody();
         }
         System.out.println("response: " + res);
         response = res;

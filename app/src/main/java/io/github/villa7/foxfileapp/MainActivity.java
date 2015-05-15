@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
         post.start();
         String res = post.getResponse().toString();
         //String res = post.send();
-        toast(res);
+        //toast(res);
         return res.equals("valid");
     }
     public void toast(String o) {
