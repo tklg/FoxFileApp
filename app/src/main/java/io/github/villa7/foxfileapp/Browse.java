@@ -1,16 +1,23 @@
 package io.github.villa7.foxfileapp;
 
 import android.app.Activity;
+import android.app.LoaderManager;
+import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -19,25 +26,38 @@ import android.widget.Toast;
 
 
 import com.goebl.david.Webb;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
+import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.sql.Time;
 import java.util.ArrayList;
 
 
-public class Browse extends Activity implements OnItemClickListener, OnItemLongClickListener, OnItemSelectedListener {
+public class Browse extends Activity implements OnItemClickListener, OnItemLongClickListener, OnItemSelectedListener{
 
     private Webb webb;
     private String phpsessid;
     private String user;
     private String fileName;
+    private String hash, type;
     private static ArrayList<String> folderBeingViewed = new ArrayList<String>(); //store folder hashes in here
     private static ArrayList<FileItem> files;
+    private ProgressBar progress;
+    private ListView listView;
+    private FileItemAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        //getLoaderManager().initLoader(0, null, this);
+
         setContentView(R.layout.activity_browse);
 
         webb = Webb.create();
@@ -46,31 +66,47 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         phpsessid = intent.getStringExtra("phpsessid");
         user = intent.getStringExtra("username");
         F.nl("user:\t" + user + "\nsessid:\t" + phpsessid);
-
+        progress = (ProgressBar) findViewById(R.id.load_progress);
+        listView = (ListView) findViewById(R.id.menubar);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(this);
+        listView.setOnItemLongClickListener(this);
+        listView.setOnItemSelectedListener(this);
         open(user, "folder"); //open the root directory to start
+        setTitle("FoxFile");
     }
 
     private void open(String fileHash, String type) {
+        showSpinner();
         F.nl("opening " + fileHash);
         if (type.equals("folder")) {
-            Request post = new Request(webb, phpsessid, "dir", fileHash, type);
+
+            try {
+                getResult("dir", fileHash, type);
+            } catch (Exception e) {
+                F.nl("Failed to get result from getResult()");
+            }
+
+            //Request post = new Request(webb, phpsessid, "dir", fileHash, type);
             //Request post = new Request(webb, phpsessid, "phpsession");
             F.nl("POST ?dir=" + fileHash + "&type=" + type);
-            post.start();
-            JSONArray res = (JSONArray) post.getResponse();
+            //post.start();
+            //JSONArray res = (JSONArray) post.getResponse();
 
-            files = FileItem.fromJSON(res);
+            //files = FileItem.fromJSON(res);
             //System.out.println(files);
-            FileItemAdapter adapter = new FileItemAdapter(this, files);
+            //adapter = new FileItemAdapter(this, files);
 
-            ListView listView = (ListView) findViewById(R.id.menubar);
+            /*listView = (ListView) findViewById(R.id.menubar);
 
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(this);
             listView.setOnItemLongClickListener(this);
-            listView.setOnItemSelectedListener(this);
+            listView.setOnItemSelectedListener(this);*/
 
-            setTitle(fileName);
+            /*hideSpinner();
+            if (fileName != null && fileName.equals(user)) fileName = "My Files";
+            setTitle(fileName);*/
         } else {
             F.nl("Type of opened file not \"folder\", was \"" + type + "\"");
             F.nl("POST ?preview=" + fileHash); //not how the preview query works (returns an image)
@@ -83,6 +119,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             intentView.putExtra("username", user);
             intentView.putExtra("filehash", fileHash);
             intentView.putExtra("filetype", type);
+            hideSpinner();
             startActivity(intentView);
         }
 
@@ -102,8 +139,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         String fileName = name.getText().toString();
         this.fileName = fileName;
 
-        String hash = null;
-        String type = "folder";
+        hash = null;
+        type = "folder";
         /*for (FileItem f : files) {
             if (f.getName().equals(fileName)) {
                 hash = f.getHash();
@@ -148,7 +185,16 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             open(folderBeingViewed.get(folderBeingViewed.size() - 1), "folder");
         }
     }
-
+    public void showSpinner() {
+        F.nl("Showing spinner");
+        //setProgressBarIndeterminateVisibility(true);
+        progress.setVisibility(View.VISIBLE);
+    }
+    public void hideSpinner() {
+        F.nl("Hiding spinner");
+        //setProgressBarIndeterminateVisibility(false);
+        progress.setVisibility(View.GONE);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -169,6 +215,43 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    public void getResult(String... params) throws JSONException {
+        final Context context = this;
+
+        Object[] bla = Params.getParams(params);
+        String page = (String) bla[0];
+        RequestParams param = (RequestParams) bla[1];
+        F.nl("Page: " + page);
+        F.nl("params:");
+        F.pa(params);
+
+        FoxFileClient.post(page, param, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject res) {
+                // If the response is JSONObject instead of expected JSONArray
+                F.nl("Recieved a single result");
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray res) {
+                F.nl("Got result JSONArray");
+                F.nl(res.toString());
+                // Do something with the response
+                //System.out.println(res);
+
+                files = FileItem.fromJSON(res);
+                //System.out.println(files);
+                FileItemAdapter adapter = new FileItemAdapter(context, files);
+
+                ListView listView = (ListView) findViewById(R.id.menubar);
+
+                listView.setAdapter(adapter);
+                hideSpinner();
+                if (fileName != null && fileName.equals(user)) fileName = "My Files";
+                setTitle(fileName);
+            }
+        });
     }
     public void toast(String s) {
         Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();

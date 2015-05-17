@@ -13,5 +13,12 @@ class F {
     public static void nl() {
         System.out.println();
     }
+    public static void pa(Object[] o) {
+        int i = 0;
+        for(Object obj : o) {
+            F.nl(i + ": " + obj);
+            i++;
+        }
+    }
 
 }

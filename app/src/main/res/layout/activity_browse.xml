@@ -22,4 +22,16 @@
         android:smoothScrollbar="true"
         android:focusable="false" />
 
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/load_progress"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:secondaryProgressTint="@color/divider"
+        android:progressTint="@color/primary"
+        android:progressTintMode="src_atop"
+        android:secondaryProgressTintMode="src_atop"
+        android:visibility="visible" />
+
 </RelativeLayout>

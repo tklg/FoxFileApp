@@ -26,6 +26,11 @@
             android:name=".FileViewer"
             android:label="@string/title_activity_file_viewer" >
         </activity>
+
+        <service
+            android:name=".RequestService"
+            android:exported="false" >
+        </service>
     </application>
 
 </manifest>
