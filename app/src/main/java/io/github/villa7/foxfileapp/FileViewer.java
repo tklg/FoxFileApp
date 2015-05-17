@@ -4,15 +4,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.goebl.david.Webb;
+import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
 
@@ -24,8 +28,10 @@ public class FileViewer extends Activity {
     private String phpsessid;
     private String user;
     private String fileHash;
+    private String fileName;
     private String type;
     private ProgressBar progress;
+    private String[] allowedTypes = {".*"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,13 +47,32 @@ public class FileViewer extends Activity {
         phpsessid = intent.getStringExtra("phpsessid");
         user = intent.getStringExtra("username");
         fileHash = intent.getStringExtra("filehash");
+        fileName = intent.getStringExtra("filename");
         type = intent.getStringExtra("filetype");
         F.nl("user:\t\t" + user + "\nsessid:\t" + phpsessid + "\nhash:\t" + fileHash + "\ntype:\t" + type);
 
-        getPreview("read_file", fileHash);
+        setTitle("FilePreview - " + fileName);
+        getPreview(getQuery(), fileHash);
 
     }
-
+    private String getQuery() {
+        switch(type) {
+            case "text":
+            case "code":
+                return "read_file";
+            case "image":
+            case "audio":
+            case "video":
+                return "preview";
+            case "zip":
+                return "zip";
+            case "pdf":
+                return "preview";
+            default:
+                F.nl("file query type not supported yet");
+                return "";
+        }
+    }
     private void getPreview(String... params) {
         showSpinner();
         switch (type) {
@@ -56,11 +81,25 @@ public class FileViewer extends Activity {
                 /*Request post = new Request(webb, phpsessid, "read_file", fileHash);
                 post.start();
                 String res = post.getResponse().toString();*/
-
-                getText(params);
-
                 /*TextView textPreview = (TextView) findViewById(R.id.text_preview);
                 textPreview.setText(res);*/
+                getText(params);
+                break;
+            case "image":
+                getImagePreview(params);
+                //toast("Is image");
+                break;
+            case "audio":
+                toast("Is audio");
+                break;
+            case "video":
+                toast("Is video");
+                break;
+            case "zip":
+                toast("Is archive");
+                break;
+            case "pdf":
+                toast("Is PDF");
                 break;
             default:
                 F.nl("file type not supported yet");
@@ -68,7 +107,6 @@ public class FileViewer extends Activity {
         }
     }
     public void getText(String... params) {
-        final Context context = this;
 
         Object[] bla = Params.getParams(params);
         String page = (String) bla[0];
@@ -78,18 +116,48 @@ public class FileViewer extends Activity {
         RequestParams param = (RequestParams) bla[1];
 
         FoxFileClient.post(page, param, new TextHttpResponseHandler() { /*JsonHttpResponseHandler*/
-
             @Override
             public void onSuccess(int statusCode, Header[] headers, String res) {
                 F.nl("Result: " + res);
                 TextView textPreview = (TextView) findViewById(R.id.text_preview);
                 textPreview.setText(res);
+                textPreview.setVisibility(View.VISIBLE);
                 hideSpinner();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
                 F.nl("failed");
+            }
+        });
+    }
+    public void getImagePreview(String... params) {
+
+        Object[] bla = Params.getParams(params);
+        String page = (String) bla[0];
+        F.nl("Page: " + page);
+        F.nl("params:");
+        F.pa(params);
+        RequestParams param = (RequestParams) bla[1];
+
+        FoxFileClient.get(page, param, new BinaryHttpResponseHandler(allowedTypes) { /*JsonHttpResponseHandler*/
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] res) {
+                F.nl("Result: " + new String(res));
+                F.nl("res is: " + res.getClass().getName());
+                ImageView imagePreview = (ImageView) findViewById(R.id.image_preview);
+                Bitmap bmp = BitmapFactory.decodeByteArray(res, 0, res.length);
+                imagePreview.setImageBitmap(bmp);
+                imagePreview.setVisibility(View.VISIBLE);
+                hideSpinner();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] res, Throwable error) {
+                hideSpinner();
+                F.nl("failed");
+                toast("Failed to connect to server");
+                error.printStackTrace();
             }
         });
 

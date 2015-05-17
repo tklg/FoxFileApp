@@ -34,7 +34,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.sql.Time;
 import java.util.ArrayList;
 
 
@@ -118,16 +117,16 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             }
         } else {
             F.nl("Type of opened file not \"folder\", was \"" + type + "\"");
-            F.nl("POST ?preview=" + fileHash); //not how the preview query works (returns an image)
-            //maybe have FileViewer activity here
-            //or have a slidy bar from the right like Google Drive with preview and options
+            F.nl("GET ?preview=" + fileHash); //not how the preview query works (returns an image)
 
             //if new page doesnt keep this page state, use a modal
             Intent intentView = new Intent(this, FileViewer.class);
             intentView.putExtra("phpsessid", phpsessid);
             intentView.putExtra("username", user);
+            intentView.putExtra("filename", fileName);
             intentView.putExtra("filehash", fileHash);
             intentView.putExtra("filetype", type);
+            //intentView.putExtra("siblings", files); //send the other files in the folder along with it for swipe left/right (does not work)
             hideSpinner();
             startActivity(intentView);
         }
@@ -154,6 +153,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         hash = f.getHash();
         type = f.getType();
         //fileName = f.getName();
+        this.fileName = fileName;
         
         if (hash == null) hash = user; //default to home dir
 
@@ -262,6 +262,12 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 if (fileName != null && fileName.equals(user)) fileName = "My Files";
                 F.nl("Setting title to " + fileName);
                 //setTitle(fileName);
+            }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable error, JSONArray res) {
+                hideSpinner();
+                toast("Failed to connect to server");
+                F.nl("failed");
             }
         });
     }

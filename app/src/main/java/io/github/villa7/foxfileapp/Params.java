@@ -48,6 +48,12 @@ public class Params {
             String hash = params[1];
             F.nl("page: " + page + " hash: " + hash);
             requestParams.put("read_file", hash);
+        } else if (type.equals("preview")) {
+            F.nl("making params for preview");
+            page = "dbquery.php";
+            String hash = params[1];
+            F.nl("page: " + page + " hash: " + hash);
+            requestParams.put("preview", hash);
         }
 
         Object[] o = {page, requestParams};

@@ -20,7 +20,7 @@ public class FileInfo {
         this.file = file;
     }
     public String getExt(String name) {
-        String[] a = name.split("\\.");
+        String[] a = name.toLowerCase().split("\\.");
         //System.out.println(a.length);
         if (a.length >= 1) {
             return a[a.length - 1];
@@ -79,6 +79,12 @@ public class FileInfo {
                     dft = "Rich Text";
                     language = "";
                     break;
+                case "htaccess":
+                case "htpasswd":
+                    bft = "text";
+                    dft = "Apache Config";
+                    language = "";
+                    break;
                 case "js":
                     bft = "code";
                     dft = "Javascript";
@@ -87,7 +93,7 @@ public class FileInfo {
                 case "java":
                     bft = "code";
                     dft = "Java File";
-                    language = "clike"; //cm doesnt have a mode for java
+                    language = "java"; //cm doesnt have a mode for java
                     mime = "text/x-java";
                     break;
                 case "bat":
@@ -98,19 +104,19 @@ public class FileInfo {
                 case "c":
                     bft = "code";
                     dft = "C File";
-                    language = "clike";
+                    language = "c";
                     mime = "text/x-csrc";
                     break;
                 case "cs":
                     bft = "code";
                     dft = "C# File";
-                    language = "clike";
+                    language = "csharp";
                     mime = "text/x-csharp";
                     break;
                 case "cpp":
                     bft = "code";
                     dft = "C++ File";
-                    language = "clike";
+                    language = "cplusplus";
                     mime = "text/x-c++src";
                     break;
                 case "lua":
@@ -176,7 +182,7 @@ public class FileInfo {
                 case "ino":
                     bft = "code";
                     dft = "Arduino Sketch";
-                    language = "clike";
+                    language = "Arduino";
                     mime = "text/x-csrc";
                     break;
                 case "dat":

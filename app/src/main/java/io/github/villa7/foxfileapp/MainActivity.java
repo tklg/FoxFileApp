@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
     private static SharedPreferences pm;
     private String user, pass;
     private ProgressBar progress;
+    private EditText userField, passwordField;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +56,12 @@ public class MainActivity extends Activity {
         pm = PreferenceManager.getDefaultSharedPreferences(this);
 
         //SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        EditText etu = (EditText) findViewById(R.id.editText_username);
-        EditText etp = (EditText) findViewById(R.id.editText_password);
-        etu.setText(pm.getString("user", ""), TextView.BufferType.EDITABLE);
-        etp.setText(pm.getString("pass", ""), TextView.BufferType.EDITABLE);
+        userField = (EditText) findViewById(R.id.editText_username);
+        passwordField = (EditText) findViewById(R.id.editText_password);
+        userField.setText(pm.getString("user", ""), TextView.BufferType.EDITABLE);
+        passwordField.setText(pm.getString("pass", ""), TextView.BufferType.EDITABLE);
+
+        FoxFileClient.initCookies(this);
     }
 
     @Override
@@ -92,8 +95,8 @@ public class MainActivity extends Activity {
         System.out.println("Got session id: " + phpsessid);
     }
     public void checkUsernameAndPassword(View v) {
-        user = ((EditText) findViewById(R.id.editText_username)).getText().toString();
-        pass = ((EditText) findViewById(R.id.editText_password)).getText().toString();
+        user = userField.getText().toString();
+        pass = passwordField.getText().toString();
 
         if (user.equals("")) {
             toast("Please enter a name.");
@@ -130,7 +133,9 @@ public class MainActivity extends Activity {
     private static boolean fff = false;
     public boolean login(String... params) {
         final Context context = this;
-
+        showSpinner();
+        userField.setEnabled(false);
+        passwordField.setEnabled(false);
         Object[] bla = Params.getParams(params);
         String page = (String) bla[0];
         F.nl("Page: " + page);
@@ -152,16 +157,26 @@ public class MainActivity extends Activity {
                     Intent intentBrowse = new Intent(context, Browse.class);
                     intentBrowse.putExtra("phpsessid", phpsessid);
                     intentBrowse.putExtra("username", user);
+                    hideSpinner();
                     startActivity(intentBrowse);
+                    userField.setEnabled(true);
+                    passwordField.setEnabled(true);
                 } else {
                     F.nl("not valid");
                     toast("Username or password is incorrect.");
+                    hideSpinner();
+                    userField.setEnabled(true);
+                    passwordField.setEnabled(true);
                     //MainActivity.fff = false;
                 }
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
+                hideSpinner();
+                userField.setEnabled(true);
+                passwordField.setEnabled(true);
+                toast("Failed to connect to server");
                 F.nl("failed");
             }
         });
