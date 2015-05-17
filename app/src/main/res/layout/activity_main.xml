@@ -4,7 +4,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity"
-    style="@style/FoxFile">
+    style="@style/FoxFile"
+    android:id="@+id/login_layout">
     <!--<Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/toolbar"
         android:layout_width="fill_parent"
@@ -14,6 +15,7 @@
         android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar"
         android:popupTheme="@android:style/ThemeOverlay.Material.Light"
         android:layout_alignParentStart="true" />-->
+
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -87,5 +89,19 @@
             android:layout_alignParentEnd="true"
             android:layout_weight="0.39" />
     </LinearLayout>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/load_progress"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:secondaryProgressTint="@color/divider"
+        android:progressTint="@color/primary"
+        android:progressTintMode="src_atop"
+        android:secondaryProgressTintMode="src_atop"
+        android:visibility="gone"
+        android:progressBackgroundTint="@color/primary"
+        android:progressBackgroundTintMode="src_atop" />
 
 </RelativeLayout>

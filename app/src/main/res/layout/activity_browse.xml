@@ -10,7 +10,8 @@
         android:background="#fff"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:visibility="gone"></LinearLayout>
+        android:visibility="gone"
+        android:id="@+id/linearLayout"></LinearLayout>
 
     <ListView
         android:layout_width="match_parent"
@@ -32,6 +33,19 @@
         android:progressTint="@color/primary"
         android:progressTintMode="src_atop"
         android:secondaryProgressTintMode="src_atop"
-        android:visibility="visible" />
+        android:visibility="gone"
+        android:progressBackgroundTint="@color/primary"
+        android:progressBackgroundTintMode="src_atop" />
+
+    <FrameLayout
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/border_width"
+        android:layout_alignBottom="@+id/linearLayout"
+        android:layout_toEndOf="@+id/linearLayout"
+        android:layout_alignParentEnd="false"
+        android:background="@color/primary"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/ActionBar_BorderBottom"></FrameLayout>
 
 </RelativeLayout>

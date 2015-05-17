@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
@@ -34,6 +35,7 @@ public class MainActivity extends Activity {
     private static String phpsessid;
     private static SharedPreferences pm;
     private String user, pass;
+    private ProgressBar progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +48,10 @@ public class MainActivity extends Activity {
         //You can now use and reference the ActionBar
         ActionBar.setTitle("FoxFile");*/
 
-        startSession();
+        progress = (ProgressBar) findViewById(R.id.load_progress);
+        progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), android.graphics.PorterDuff.Mode.SRC_IN);
+
+        //startSession();
         pm = PreferenceManager.getDefaultSharedPreferences(this);
 
         //SharedPreferences preferences = getPreferences(MODE_PRIVATE);
@@ -111,12 +116,13 @@ public class MainActivity extends Activity {
         }
     }
     public boolean login(String u, String p) {
+        showSpinner();
         Request post = new Request(webb, phpsessid, "login", u, p);
         post.start();
         String res = post.getResponse().toString();
         //String res = post.send();
-        toast(res);
-
+        //toast(res);
+        hideSpinner();
         return res.equals("valid");
     }
 
@@ -128,8 +134,8 @@ public class MainActivity extends Activity {
         Object[] bla = Params.getParams(params);
         String page = (String) bla[0];
         F.nl("Page: " + page);
-        F.nl("params:");
-        F.pa(params);
+        //F.nl("params:");
+        //F.pa(params);
         RequestParams param = (RequestParams) bla[1];
 
         FoxFileClient.post(page, param, new TextHttpResponseHandler() { /*JsonHttpResponseHandler*/
@@ -153,6 +159,7 @@ public class MainActivity extends Activity {
                     //MainActivity.fff = false;
                 }
             }
+
             @Override
             public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
                 F.nl("failed");
@@ -162,6 +169,16 @@ public class MainActivity extends Activity {
         //F.nl("Returning: " + fff);
         return fff;
 
+    }
+    public void showSpinner() {
+        F.nl("Showing spinner");
+        //setProgressBarIndeterminateVisibility(true);
+        progress.setVisibility(View.VISIBLE);
+    }
+    public void hideSpinner() {
+        F.nl("Hiding spinner");
+        //setProgressBarIndeterminateVisibility(false);
+        progress.setVisibility(View.GONE);
     }
     public void toast(String o) {
         Toast.makeText(getApplicationContext(), o, Toast.LENGTH_SHORT).show();

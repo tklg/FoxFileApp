@@ -67,13 +67,15 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         user = intent.getStringExtra("username");
         F.nl("user:\t" + user + "\nsessid:\t" + phpsessid);
         progress = (ProgressBar) findViewById(R.id.load_progress);
+        progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), android.graphics.PorterDuff.Mode.SRC_IN);
+
         listView = (ListView) findViewById(R.id.menubar);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
         listView.setOnItemSelectedListener(this);
         open(user, "folder"); //open the root directory to start
-        setTitle("FoxFile");
+        //setTitle("FoxFile");
     }
 
     private void open(String fileHash, String type) {
@@ -85,11 +87,13 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 getResult("dir", fileHash, type);
             } catch (Exception e) {
                 F.nl("Failed to get result from getResult()");
+                e.printStackTrace();
             }
 
             //Request post = new Request(webb, phpsessid, "dir", fileHash, type);
             //Request post = new Request(webb, phpsessid, "phpsession");
             F.nl("POST ?dir=" + fileHash + "&type=" + type);
+
             //post.start();
             //JSONArray res = (JSONArray) post.getResponse();
 
@@ -107,6 +111,11 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             /*hideSpinner();
             if (fileName != null && fileName.equals(user)) fileName = "My Files";
             setTitle(fileName);*/
+            if (!folderBeingViewed.contains(fileHash)) {
+                folderBeingViewed.add(fileHash);
+            } else {
+                F.nl("arraylist already has folder, was the back button pressed?");
+            }
         } else {
             F.nl("Type of opened file not \"folder\", was \"" + type + "\"");
             F.nl("POST ?preview=" + fileHash); //not how the preview query works (returns an image)
@@ -122,12 +131,6 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             hideSpinner();
             startActivity(intentView);
         }
-
-        if (!folderBeingViewed.contains(fileHash)) {
-            folderBeingViewed.add(fileHash);
-        } else {
-            F.nl("arraylist already has folder, was the back button pressed?");
-        }
     }
 
     public void onItemClick(AdapterView<?> l, View v, int position, long id) {
@@ -137,7 +140,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         LinearLayout layout = (LinearLayout) v.findViewById(R.id.layout_file);
         TextView name = (TextView) layout.findViewById(R.id.fileName);
         String fileName = name.getText().toString();
-        this.fileName = fileName;
+        //this.fileName = fileName;
 
         hash = null;
         type = "folder";
@@ -150,6 +153,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         FileItem f = files.get(position);
         hash = f.getHash();
         type = f.getType();
+        //fileName = f.getName();
         
         if (hash == null) hash = user; //default to home dir
 
@@ -248,8 +252,16 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
 
                 listView.setAdapter(adapter);
                 hideSpinner();
+
+                /*for (FileItem f : files) {
+                    if (f.getHash().equals(params[1])) {
+                        fileName = f.getName();
+                    }
+                }*/
+
                 if (fileName != null && fileName.equals(user)) fileName = "My Files";
-                setTitle(fileName);
+                F.nl("Setting title to " + fileName);
+                //setTitle(fileName);
             }
         });
     }

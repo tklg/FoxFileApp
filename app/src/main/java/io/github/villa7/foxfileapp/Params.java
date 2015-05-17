@@ -11,13 +11,14 @@ public class Params {
     private static String page;
 
     public static Object[] getParams(String... params) {
+        page = "";
+        requestParams = new RequestParams();
         String type = params[0];
         F.nl("making " + type + " params");
         if (type.equals("login")) {
             page = "uauth.php";
             String u = params[1];
             String p = params[2];
-            requestParams = new RequestParams();
             requestParams.put("login", "yes");
             requestParams.put("username", u);
             requestParams.put("password", p);
@@ -42,8 +43,10 @@ public class Params {
             page = "dbquery.php";
             requestParams.put("SETSESSIONID", 0);
         } else if (type.equals("read_file")) {
+            F.nl("making params for read_file");
             page = "dbquery.php";
             String hash = params[1];
+            F.nl("page: " + page + " hash: " + hash);
             requestParams.put("read_file", hash);
         }
 
