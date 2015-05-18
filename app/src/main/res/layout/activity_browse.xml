@@ -33,7 +33,7 @@
         android:progressTint="@color/primary"
         android:progressTintMode="src_atop"
         android:secondaryProgressTintMode="src_atop"
-        android:visibility="gone"
+        android:visibility="visible"
         android:progressBackgroundTint="@color/primary"
         android:progressBackgroundTintMode="src_atop" />
 

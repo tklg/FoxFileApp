@@ -1,20 +1,26 @@
 package io.github.villa7.foxfileapp;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -42,7 +48,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     private Webb webb;
     private String phpsessid;
     private String user;
-    private String fileName;
+    private String fileName = "My Files";
     private String hash, type;
     private static ArrayList<String> folderBeingViewed = new ArrayList<String>(); //store folder hashes in here
     private static ArrayList<FileItem> files;
@@ -115,6 +121,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             } else {
                 F.nl("arraylist already has folder, was the back button pressed?");
             }
+
         } else {
             F.nl("Type of opened file not \"folder\", was \"" + type + "\"");
             F.nl("GET ?preview=" + fileHash); //not how the preview query works (returns an image)
@@ -198,6 +205,52 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         F.nl("Hiding spinner");
         //setProgressBarIndeterminateVisibility(false);
         progress.setVisibility(View.GONE);
+    }
+    public void showClickMenu(View v) {
+        //AlertDialog.Builder clickMenu = new AlertDialog.Builder(this);
+        final Dialog clickMenu = new Dialog(this);
+        //clickMenu.setTitle(fileName);
+        clickMenu.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        clickMenu.setContentView(R.layout.modal_clickmenu);
+        clickMenu.getWindow().getAttributes().width = WindowManager.LayoutParams.MATCH_PARENT;
+
+        TextView title = (TextView) clickMenu.findViewById(R.id.modal_title);
+        title.setText("File Name");
+
+        Button btn_delete = (Button) clickMenu.findViewById(R.id.button_delete);
+        btn_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toast("Delete");
+                clickMenu.dismiss();
+            }
+        });
+        Button btn_download = (Button) clickMenu.findViewById(R.id.button_download);
+        btn_download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toast("Download");
+                clickMenu.dismiss();
+            }
+        });
+        Button btn_upload = (Button) clickMenu.findViewById(R.id.button_upload);
+        btn_upload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toast("Upload");
+                clickMenu.dismiss();
+            }
+        });
+        Button btn_rename = (Button) clickMenu.findViewById(R.id.button_rename);
+        btn_rename.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toast("Rename");
+                clickMenu.dismiss();
+            }
+        });
+
+        clickMenu.show();
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -51,7 +51,7 @@ public class FileViewer extends Activity {
         type = intent.getStringExtra("filetype");
         F.nl("user:\t\t" + user + "\nsessid:\t" + phpsessid + "\nhash:\t" + fileHash + "\ntype:\t" + type);
 
-        setTitle("FilePreview - " + fileName);
+        setTitle(fileName);
         getPreview(getQuery(), fileHash);
 
     }

@@ -4,6 +4,7 @@ import com.goebl.david.Webb;
 
 /**
  * Created by kluget on 5/12/2015.
+ * CURRENTLY UNUSED
  */
 public class Request extends Thread {
 
