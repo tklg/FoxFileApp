@@ -30,7 +30,6 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Toast;
 
-
 import com.goebl.david.Webb;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -41,7 +40,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-
 
 public class Browse extends Activity implements OnItemClickListener, OnItemLongClickListener, OnItemSelectedListener{
 
@@ -80,7 +78,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         listView.setOnItemLongClickListener(this);
         listView.setOnItemSelectedListener(this);
         open(user, "folder"); //open the root directory to start
-        //setTitle("FoxFile");
+        //setTitle("FoxFile ◦ My Files");
     }
 
     private void open(String fileHash, String type) {
@@ -145,7 +143,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         //View view = LayoutInflater.from().inflate(R.layout.layout_file, parent, false);
         LinearLayout layout = (LinearLayout) v.findViewById(R.id.layout_file);
         TextView name = (TextView) layout.findViewById(R.id.fileName);
-        String fileName = name.getText().toString();
+
+        //String fileName = name.getText().toString();
         //this.fileName = fileName;
 
         hash = null;
@@ -159,13 +158,15 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         FileItem f = files.get(position);
         hash = f.getHash();
         type = f.getType();
-        //fileName = f.getName();
-        this.fileName = fileName;
+        this.fileName = f.getName();
+        //this.fileName = fileName;
         
         if (hash == null) hash = user; //default to home dir
 
         F.nl("Name: " + fileName);
         F.nl("Hash: " + hash);
+        //toast(fileName);
+        //setTitle("FoxFile ◦ " + fileName);
         open(hash, type);
     }
     public boolean onItemLongClick(AdapterView<?> l, View v, int position, long id) {
@@ -208,6 +209,20 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     }
     public void showClickMenu(View v) {
         //AlertDialog.Builder clickMenu = new AlertDialog.Builder(this);
+        F.nl(v.getParent());
+        LinearLayout linearLayout = (LinearLayout) v.getParent();
+        TextView textView = (TextView) linearLayout.findViewById(R.id.fileName);
+
+        //or just do this
+        for (FileItem f : files) {
+            if (f.getName().equals(textView.getText())) {
+                hash = f.getHash();
+                fileName = f.getName();
+                type = f.getType();
+            }
+        }
+
+
         final Dialog clickMenu = new Dialog(this);
         //clickMenu.setTitle(fileName);
         clickMenu.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -215,13 +230,14 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         clickMenu.getWindow().getAttributes().width = WindowManager.LayoutParams.MATCH_PARENT;
 
         TextView title = (TextView) clickMenu.findViewById(R.id.modal_title);
-        title.setText("File Name");
+        title.setText(fileName);
 
         Button btn_delete = (Button) clickMenu.findViewById(R.id.button_delete);
         btn_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toast("Delete");
+                toast("Delete " + fileName);
+                F.nl("Delete " + fileName + " (" + hash + ")");
                 clickMenu.dismiss();
             }
         });
@@ -229,23 +245,30 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         btn_download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toast("Download");
+                toast("Download " + fileName);
+                F.nl("Download " + fileName + " (" + hash + ")");
                 clickMenu.dismiss();
             }
         });
         Button btn_upload = (Button) clickMenu.findViewById(R.id.button_upload);
-        btn_upload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toast("Upload");
-                clickMenu.dismiss();
-            }
-        });
+        if (!type.equals("folder")) {
+            btn_upload.setVisibility(View.GONE);
+        } else {
+            btn_upload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    toast("Upload to " + fileName);
+                    F.nl("Upload to " + fileName + " (" + hash + ")");
+                    clickMenu.dismiss();
+                }
+            });
+        }
         Button btn_rename = (Button) clickMenu.findViewById(R.id.button_rename);
         btn_rename.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toast("Rename");
+                toast("Rename " + fileName);
+                F.nl("Rename " + fileName + " (" + hash + ")");
                 clickMenu.dismiss();
             }
         });
@@ -270,8 +293,15 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_refresh) {
+            reloadFolder();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
+    }
+    public void reloadFolder() {
+        open(folderBeingViewed.get(folderBeingViewed.size() - 1), "folder");
     }
     public void getResult(String... params) throws JSONException {
         final Context context = this;
