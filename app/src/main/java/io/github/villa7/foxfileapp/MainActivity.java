@@ -62,6 +62,10 @@ public class MainActivity extends Activity {
         passwordField.setText(pm.getString("pass", ""), TextView.BufferType.EDITABLE);
 
         FoxFileClient.initCookies(this);
+
+        if (!userField.getText().equals("") && !passwordField.getText().equals("")) {
+            checkUsernameAndPassword(findViewById(R.id.button_login));
+        }
     }
 
     @Override

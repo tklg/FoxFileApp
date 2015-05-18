@@ -11,4 +11,22 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_file_viewer">FileViewer</string>
+
+    <string name="icon_ellipsis_v">&#xf142;</string>
+    <string name="icon_delete">&#xf014;</string>
+    <string name="icon_upload">&#xf093;</string>
+    <string name="icon_download">&#xf019;</string>
+    <string name="icon_rename">&#xf044;</string>
+    <string name="icon_refresh">&#xf021;</string>
+    <string name="icon_warning">&#xf071;</string>
+    <string name="icon_link">&#xf0c1;</string>
+
+    <string name="icon_folder">&#xf114;</string>
+    <string name="icon_file">&#xf016;</string>
+    <string name="icon_zip">&#xf1c6;</string>
+    <string name="icon_text">&#xf0f6;</string>
+    <string name="icon_code">&#xf1c9;</string>
+    <string name="icon_image">&#xf1c5;</string>
+    <string name="icon_video">&#xf1c8;</string>
+    <string name="icon_audio">&#xf1c7;</string>
 </resources>

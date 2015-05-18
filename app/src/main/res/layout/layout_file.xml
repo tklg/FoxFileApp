@@ -7,7 +7,8 @@
     android:baselineAligned="false"
     android:clickable="false"
     android:focusable="false"
-    android:longClickable="false">
+    android:longClickable="false"
+    android:descendantFocusability="blocksDescendants" >
 
     <LinearLayout
         android:orientation="horizontal"
@@ -16,14 +17,25 @@
         android:id="@+id/menu_item">
 
         <TextView
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:text="@string/icon_file"
+            android:id="@+id/file_icon"
+            android:layout_weight="0.05"
+            android:textAlignment="center"
+            android:gravity="center"
+            style="@style/fileicon"
+            android:paddingLeft="10dp" />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Large Text"
+            android:text="File Name"
             android:id="@+id/fileName"
             android:gravity="center_vertical|start"
             android:paddingLeft="10dp"
-            android:layout_weight="0.8"
+            android:layout_weight="0.75"
             android:maxLines="1"
             style="@style/filename"
             android:ellipsize="end"
@@ -34,16 +46,15 @@
             android:layout_width="139dp"
             android:layout_height="match_parent"
             android:weightSum="1"
-            android:layout_weight="0.2">
+            android:layout_weight="0.17">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="Small Text"
+                android:text="File Type"
                 android:id="@+id/fileType"
                 android:gravity="center_vertical|right"
-                android:paddingRight="10dp"
                 android:maxLines="1"
                 style="@style/fileinfo" />
 
@@ -51,15 +62,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="Small Text"
+                android:text="File Size"
                 android:id="@+id/fileSize"
                 android:gravity="center_vertical|right"
-                android:paddingRight="10dp"
                 android:layout_gravity="center_vertical"
                 android:maxLines="1"
                 style="@style/fileinfo" />
 
         </LinearLayout>
+
+        <Button
+            android:id="@+id/clickmenu"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:elegantTextHeight="true"
+            android:text="@string/icon_ellipsis_v"
+            android:background="#00000000"
+            android:textColor="@color/text_secondary"
+            android:layout_weight="0.03"
+            android:onClick="showClickMenu" />
     </LinearLayout>
 
 </LinearLayout>

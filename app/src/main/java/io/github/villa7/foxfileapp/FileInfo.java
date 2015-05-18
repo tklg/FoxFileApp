@@ -14,6 +14,7 @@ public class FileInfo {
     public String dft = "";
     public String mime = "";
     public String size = "0MB";
+    public String icon = "";
     private DecimalFormat fmt = new DecimalFormat("#.##");
 
     public FileInfo(FileItem file) {
@@ -37,6 +38,7 @@ public class FileInfo {
     public String getSize() {
         return size;
     }
+    public String getIcon() { return icon; }
 
     public void getInfo() {
         double fSize = Double.parseDouble(file.getSize());

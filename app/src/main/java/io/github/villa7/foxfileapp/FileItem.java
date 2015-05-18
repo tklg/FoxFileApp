@@ -17,6 +17,7 @@ public class FileItem {
             name = "placeholder",
             type = "folder",
             detType = "",
+            icon = "",
             hash = "test_hash",
             parent = "test_parent",
             lastmod = "00 0, 0000";
@@ -47,6 +48,7 @@ public class FileItem {
         fi.size = fo.getSize();
         fi.type = fo.getBft();
         fi.detType = fo.getDft();
+        fi.icon = fo.getIcon();
 
         return fi;
     }
