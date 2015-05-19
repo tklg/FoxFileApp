@@ -408,6 +408,11 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 File fileToUpload = new File(path);
                 F.nl("File Path: " + path);
                 F.nl("File name: " + fileToUploadName);
+                clickMenu = new Dialog(this);
+                final Context context = this;
+                //clickMenu.setTitle(fileName);
+                clickMenu.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                clickMenu.getWindow().getAttributes().width = WindowManager.LayoutParams.MATCH_PARENT;
                 clickMenu.setContentView(R.layout.modal_progress);
                 final ProgressBar modal_progress = (ProgressBar) clickMenu.findViewById(R.id.modal_progressbar);
                 modal_progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
@@ -471,6 +476,13 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         }
         if (id == R.id.action_refresh) {
             reloadFolder();
+            return true;
+        }
+        if (id == R.id.action_upload) {
+            F.nl("Upload to " + fileName + " (" + hash + ")");
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*");
+            startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), FILE_SELECT_CODE);
             return true;
         }
 
