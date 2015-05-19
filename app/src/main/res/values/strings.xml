@@ -7,6 +7,8 @@
     <string name="action_settings">Settings</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_download">Download</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_upload">Upload</string>
 
     <string name="string_username">Username</string>
     <string name="string_password">Password</string>
@@ -24,7 +26,7 @@
     <string name="icon_warning">&#xf071;</string>
     <string name="icon_link">&#xf0c1;</string>
 
-    <string name="icon_folder">&#xf114;</string>
+    <string name="icon_folder">&#xf07b;</string>
     <string name="icon_file">&#xf016;</string>
     <string name="icon_zip">&#xf1c6;</string>
     <string name="icon_text">&#xf0f6;</string>

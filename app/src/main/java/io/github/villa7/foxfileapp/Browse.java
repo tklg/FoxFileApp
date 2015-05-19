@@ -10,8 +10,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +25,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -33,12 +38,19 @@ import android.widget.Toast;
 import com.goebl.david.Webb;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 public class Browse extends Activity implements OnItemClickListener, OnItemLongClickListener, OnItemSelectedListener{
@@ -53,6 +65,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     private ProgressBar progress;
     private ListView listView;
     private FileItemAdapter adapter;
+    private Dialog clickMenu;
+
+    final int FILE_SELECT_CODE = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +85,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         user = intent.getStringExtra("username");
         F.nl("user:\t" + user + "\nsessid:\t" + phpsessid);
         progress = (ProgressBar) findViewById(R.id.load_progress);
-        progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), android.graphics.PorterDuff.Mode.SRC_IN);
+        progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
 
         listView = (ListView) findViewById(R.id.menubar);
         listView.setAdapter(adapter);
@@ -223,7 +238,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         }
 
 
-        final Dialog clickMenu = new Dialog(this);
+        clickMenu = new Dialog(this);
+        final Context context = this;
         //clickMenu.setTitle(fileName);
         clickMenu.requestWindowFeature(Window.FEATURE_NO_TITLE);
         clickMenu.setContentView(R.layout.modal_clickmenu);
@@ -236,16 +252,57 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         btn_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toast("Delete " + fileName);
-                F.nl("Delete " + fileName + " (" + hash + ")");
-                clickMenu.dismiss();
+                //toast("Confirm Delete " + fileName);
+                F.nl("Confirm Delete " + fileName + " (" + hash + ")");
+
+                clickMenu.setContentView(R.layout.modal_confirm);
+
+                TextView title = (TextView) clickMenu.findViewById(R.id.modal_title);
+                title.setText("Delete " + fileName + "?");
+                Button btn_yes = (Button) clickMenu.findViewById(R.id.button_positive);
+                Button btn_no = (Button) clickMenu.findViewById(R.id.button_negative);
+                btn_yes.setText("Delete");
+                btn_yes.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //toast("Delete " + fileName);
+                        F.nl("Delete " + fileName + " (" + hash + ")");
+                        //delete
+                        Object[] bla = Params.getParams("delete", hash);
+                        String page = (String) bla[0];
+                        RequestParams param = (RequestParams) bla[1];
+                        F.nl("Page: " + page);
+                        F.nl("params:");
+
+                        FoxFileClient.post(page, param, new TextHttpResponseHandler() {
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, String res) {
+                                clickMenu.dismiss();
+                                reloadFolder();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
+                                //hideSpinner();
+                                toast("Failed to connect to server");
+                                F.nl("failed");
+                            }
+                        });
+                    }
+                });
+                btn_no.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        clickMenu.dismiss();
+                    }
+                });
             }
         });
         Button btn_download = (Button) clickMenu.findViewById(R.id.button_download);
         btn_download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toast("Download " + fileName);
+                //toast("Download " + fileName);
                 F.nl("Download " + fileName + " (" + hash + ")");
                 clickMenu.dismiss();
             }
@@ -257,9 +314,14 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             btn_upload.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    toast("Upload to " + fileName);
+                    //toast("Upload to " + fileName);
                     F.nl("Upload to " + fileName + " (" + hash + ")");
-                    clickMenu.dismiss();
+
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("*/*");
+                    //intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+                    startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), FILE_SELECT_CODE);
                 }
             });
         }
@@ -267,13 +329,127 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         btn_rename.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toast("Rename " + fileName);
-                F.nl("Rename " + fileName + " (" + hash + ")");
-                clickMenu.dismiss();
+                //toast("Conf Rename " + fileName);
+                F.nl("Conf Rename " + fileName + " (" + hash + ")");
+                clickMenu.setContentView(R.layout.modal_input);
+
+                TextView title = (TextView) clickMenu.findViewById(R.id.modal_title);
+                EditText input = (EditText) clickMenu.findViewById(R.id.textInput);
+                input.setText(fileName);
+                title.setText("Rename " + fileName + "?");
+                Button btn_yes = (Button) clickMenu.findViewById(R.id.button_positive);
+                Button btn_no = (Button) clickMenu.findViewById(R.id.button_negative);
+                btn_yes.setText("Rename");
+                btn_yes.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //toast("Rename " + fileName);
+                        F.nl("Rename " + fileName + " (" + hash + ")");
+                        String fileNewName = ((EditText) clickMenu.findViewById(R.id.textInput)).getText().toString();
+                        //rename
+                        Object[] bla = Params.getParams("rename", hash, fileNewName);
+                        String page = (String) bla[0];
+                        RequestParams param = (RequestParams) bla[1];
+                        F.nl("Page: " + page);
+                        F.nl("params:");
+
+                        FoxFileClient.post(page, param, new TextHttpResponseHandler() {
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, String res) {
+                                clickMenu.dismiss();
+                                reloadFolder();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
+                                //hideSpinner();
+                                toast("Failed to connect to server");
+                                F.nl("failed");
+                            }
+                        });
+                    }
+                });
+                btn_no.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        clickMenu.dismiss();
+                    }
+                });
             }
         });
 
         clickMenu.show();
+    }
+    //for file upload onclicks
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data == null) {
+            return;
+        }
+        switch (requestCode) {
+            case FILE_SELECT_CODE:
+                // Get the Uri of the selected file
+                Uri uri = data.getData();
+                F.nl("File Uri: " + uri.toString());
+
+                //also from StackOverflow
+                String wholeID = DocumentsContract.getDocumentId(uri);
+                String id = wholeID.split(":")[1];
+                String[] column = { MediaStore.Images.Media.DATA };
+                String sel = MediaStore.Images.Media._ID + "=?";
+                Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{ id }, null);
+                String path = "";
+                int columnIndex = cursor.getColumnIndex(column[0]);
+                if (cursor.moveToFirst()) {
+                    path = cursor.getString(columnIndex);
+                }
+                cursor.close();
+                final String fileToUploadName = path.split("/")[path.split("/").length - 1];
+                File fileToUpload = new File(path);
+                F.nl("File Path: " + path);
+                F.nl("File name: " + fileToUploadName);
+                clickMenu.setContentView(R.layout.modal_progress);
+                final ProgressBar modal_progress = (ProgressBar) clickMenu.findViewById(R.id.modal_progressbar);
+                modal_progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
+                modal_progress.getProgressDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
+                modal_progress.setMax(100);
+                // Initiate the upload
+
+                RequestParams param = new RequestParams();
+
+                param.put("upload_target", hash);
+                try {
+                    param.put("file", new FileInputStream(fileToUpload), fileToUploadName);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                FoxFileClient.post("dbquery.php", param, new TextHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, String res) {
+                        //toast(res);
+                        toast(fileToUploadName + " uploaded to " + fileName);
+                        F.nl(res);
+                        clickMenu.dismiss();
+                        reloadFolder();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
+                        //hideSpinner();
+                        toast("Failed to connect to server");
+                        F.nl("failed");
+                    }
+
+                    @Override
+                    public void onProgress(int bytesWritten, int totalSize) {
+                        F.nl("Upload progress: " + bytesWritten + " / " + totalSize + " (" + bytesWritten / totalSize * 100 + "%)");
+                       modal_progress.setProgress(bytesWritten / totalSize * 100);
+                    }
+                });
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -346,8 +522,33 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 F.nl("Setting title to " + fileName);
                 //setTitle(fileName);
             }
+
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable error, JSONArray res) {
+                hideSpinner();
+                toast("Failed to connect to server");
+                F.nl("failed");
+            }
+        });
+    }
+    public void sendRename(String... params) {
+        final Context context = this;
+
+        Object[] bla = Params.getParams(params);
+        String page = (String) bla[0];
+        RequestParams param = (RequestParams) bla[1];
+        F.nl("Page: " + page);
+        F.nl("params:");
+        F.pa(params);
+
+        FoxFileClient.post(page, param, new TextHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String res) {
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
                 hideSpinner();
                 toast("Failed to connect to server");
                 F.nl("failed");

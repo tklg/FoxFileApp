@@ -85,7 +85,7 @@
             android:id="@+id/textView2"
             style="@style/title_file"
             android:layout_marginEnd="76dp"
-            android:layout_alignBottom="@+id/editText"
+            android:layout_alignBottom="@+id/textInput"
             android:layout_alignParentEnd="true"
             android:layout_weight="0.39" />
     </LinearLayout>
