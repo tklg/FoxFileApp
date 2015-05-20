@@ -14,6 +14,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
@@ -36,6 +37,9 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Toast;
 
 import com.goebl.david.Webb;
+import com.loopj.android.http.BinaryHttpResponseHandler;
+import com.loopj.android.http.DataAsyncHttpResponseHandler;
+import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
@@ -49,6 +53,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -304,7 +309,54 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             public void onClick(View v) {
                 //toast("Download " + fileName);
                 F.nl("Download " + fileName + " (" + hash + ")");
-                clickMenu.dismiss();
+                Object[] bla = Params.getParams("download", hash, fileName);
+                String page = (String) bla[0];
+                RequestParams param = (RequestParams) bla[1];
+                F.nl("Page: " + page);
+                F.nl("params:");
+                //F.pa(params);
+                final String directory_downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+
+                clickMenu.setContentView(R.layout.modal_progress);
+                final ProgressBar modal_progress = (ProgressBar) clickMenu.findViewById(R.id.modal_progressbar);
+                modal_progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
+                modal_progress.getProgressDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
+
+                FoxFileClient.get(page, param, new BinaryHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] res) {
+
+                        String tgt = (directory_downloads + "/" + fileName);
+                        File tgtFile = new File(tgt);
+                        try {
+                            FileOutputStream outputStream = new FileOutputStream(tgtFile, true);
+                            outputStream.write(res);
+                            outputStream.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                        intent.setData(Uri.fromFile(tgtFile));
+                        sendBroadcast(intent);
+
+                        clickMenu.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] res, Throwable error) {
+                        //hideSpinner();
+                        clickMenu.dismiss();
+                        toast("Failed to connect to server");
+                        F.nl("failed");
+                    }
+                    @Override
+                    public void onProgress(int bytesWritten, int totalSize) {
+                        if (modal_progress.getMax() != totalSize) modal_progress.setMax(totalSize);
+                        F.nl("Download progress: " + bytesWritten + " / " + totalSize + " (" + bytesWritten / totalSize * 100 + "%)");
+                        modal_progress.setProgress(bytesWritten);
+                    }
+                });
             }
         });
         Button btn_upload = (Button) clickMenu.findViewById(R.id.button_upload);
@@ -329,8 +381,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         btn_rename.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //toast("Conf Rename " + fileName);
+                //sendRename(v);
                 F.nl("Conf Rename " + fileName + " (" + hash + ")");
+                //clickMenu = new Dialog(this);
                 clickMenu.setContentView(R.layout.modal_input);
 
                 TextView title = (TextView) clickMenu.findViewById(R.id.modal_title);
@@ -417,7 +470,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 final ProgressBar modal_progress = (ProgressBar) clickMenu.findViewById(R.id.modal_progressbar);
                 modal_progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
                 modal_progress.getProgressDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
-                modal_progress.setMax(100);
+//                modal_progress.setMax(100);
                 // Initiate the upload
 
                 RequestParams param = new RequestParams();
@@ -448,8 +501,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
 
                     @Override
                     public void onProgress(int bytesWritten, int totalSize) {
+                        if (modal_progress.getMax() != totalSize) modal_progress.setMax(totalSize);
                         F.nl("Upload progress: " + bytesWritten + " / " + totalSize + " (" + bytesWritten / totalSize * 100 + "%)");
-                       modal_progress.setProgress(bytesWritten / totalSize * 100);
+                       modal_progress.setProgress(bytesWritten);
                     }
                 });
                 break;
@@ -460,6 +514,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_browse, menu);
+        //((MenuItem) menu.findItem(R.id.action_refresh)).setTypeface(Typefaces.get(this, "fontawesome-webfont.ttf"));
+        //((MenuItem) menu.findItem(R.id.action_upload)).setTypeface(Typefaces.get(this, "fontawesome-webfont.ttf"));
         return true;
     }
 
@@ -483,6 +539,10 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("*/*");
             startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), FILE_SELECT_CODE);
+            return true;
+        }
+        if (id == R.id.action_rename) {
+            sendRename(findViewById(R.id.action_rename));
             return true;
         }
 
@@ -543,29 +603,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
             }
         });
     }
-    public void sendRename(String... params) {
-        final Context context = this;
+    public void sendRename(View v) {
+        //toast("Conf Rename " + fileName);
 
-        Object[] bla = Params.getParams(params);
-        String page = (String) bla[0];
-        RequestParams param = (RequestParams) bla[1];
-        F.nl("Page: " + page);
-        F.nl("params:");
-        F.pa(params);
-
-        FoxFileClient.post(page, param, new TextHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, String res) {
-
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
-                hideSpinner();
-                toast("Failed to connect to server");
-                F.nl("failed");
-            }
-        });
     }
     public void toast(String s) {
         Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();

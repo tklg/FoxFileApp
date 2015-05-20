@@ -78,11 +78,6 @@ public class FileViewer extends Activity {
         switch (type) {
             case "text":
             case "code":
-                /*Request post = new Request(webb, phpsessid, "read_file", fileHash);
-                post.start();
-                String res = post.getResponse().toString();*/
-                /*TextView textPreview = (TextView) findViewById(R.id.text_preview);
-                textPreview.setText(res);*/
                 getText(params);
                 break;
             case "image":

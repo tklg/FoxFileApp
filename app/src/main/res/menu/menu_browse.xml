@@ -3,10 +3,16 @@
     tools:context="io.github.villa7.foxfileapp.Browse">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" android:showAsAction="never" />
-    <item android:id="@+id/action_refresh" android:title="R"
-        android:orderInCategory="100" android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_refresh"
+        android:title="R"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom" />
+        <!--android:actionLayout="@layout/layout_menuitem_notext" />-->
     <item android:id="@+id/action_rename" android:title="@string/action_rename"
         android:orderInCategory="100" android:showAsAction="never" />
-    <item android:id="@+id/action_upload" android:title="U"
-        android:orderInCategory="100" android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_upload"
+        android:title="U"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom" />
+        <!--android:actionLayout="@layout/layout_menuitem_notext" />-->
 </menu>
