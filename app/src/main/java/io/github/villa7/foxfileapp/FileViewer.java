@@ -1,15 +1,21 @@
 package io.github.villa7.foxfileapp;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -21,6 +27,9 @@ import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.http.Header;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class FileViewer extends Activity {
 
@@ -176,8 +185,66 @@ public class FileViewer extends Activity {
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_download) {
+            download(findViewById(id));
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
+    }
+    public void download(View v) {
+        F.nl("Download " + fileName + " (" + fileHash + ")");
+        Object[] bla = Params.getParams("download", fileHash, fileName);
+        String page = (String) bla[0];
+        RequestParams param = (RequestParams) bla[1];
+        F.nl("Page: " + page);
+        F.nl("params:");
+        //F.pa(params);
+        final String directory_downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+        final Dialog clickMenu = new Dialog(this);
+        clickMenu.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        clickMenu.getWindow().getAttributes().width = WindowManager.LayoutParams.MATCH_PARENT;
+
+        clickMenu.setContentView(R.layout.modal_progress);
+        final ProgressBar modal_progress = (ProgressBar) clickMenu.findViewById(R.id.modal_progressbar);
+        modal_progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
+        modal_progress.getProgressDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
+
+        FoxFileClient.get(page, param, new BinaryHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] res) {
+
+                String tgt = (directory_downloads + "/" + fileName);
+                File tgtFile = new File(tgt);
+                try {
+                    FileOutputStream outputStream = new FileOutputStream(tgtFile, true);
+                    outputStream.write(res);
+                    outputStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                intent.setData(Uri.fromFile(tgtFile));
+                sendBroadcast(intent);
+
+                clickMenu.dismiss();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] res, Throwable error) {
+                //hideSpinner();
+                clickMenu.dismiss();
+                toast("Failed to connect to server");
+                F.nl("failed");
+            }
+            @Override
+            public void onProgress(int bytesWritten, int totalSize) {
+                if (modal_progress.getMax() != totalSize) modal_progress.setMax(totalSize);
+                F.nl("Download progress: " + bytesWritten + " / " + totalSize + " (" + bytesWritten / totalSize * 100 + "%)");
+                modal_progress.setProgress(bytesWritten);
+            }
+        });
     }
     public void toast(String s) {
         Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();

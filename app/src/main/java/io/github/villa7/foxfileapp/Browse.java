@@ -58,9 +58,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
-public class Browse extends Activity implements OnItemClickListener, OnItemLongClickListener, OnItemSelectedListener{
+public class Browse extends Activity implements OnItemClickListener, OnItemLongClickListener, OnItemSelectedListener {
 
-    private Webb webb;
+    //private Webb webb;
     private String phpsessid;
     private String user;
     private String fileName = "My Files";
@@ -83,7 +83,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
 
         setContentView(R.layout.activity_browse);
 
-        webb = Webb.create();
+        //webb = Webb.create();
 
         Intent intent = getIntent();
         phpsessid = intent.getStringExtra("phpsessid");
@@ -270,6 +270,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 btn_yes.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        showSpinner();
                         //toast("Delete " + fileName);
                         F.nl("Delete " + fileName + " (" + hash + ")");
                         //delete
@@ -282,13 +283,14 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                         FoxFileClient.post(page, param, new TextHttpResponseHandler() {
                             @Override
                             public void onSuccess(int statusCode, Header[] headers, String res) {
+                                hideSpinner();
                                 clickMenu.dismiss();
                                 reloadFolder();
                             }
 
                             @Override
                             public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
-                                //hideSpinner();
+                                hideSpinner();
                                 toast("Failed to connect to server");
                                 F.nl("failed");
                             }
@@ -318,6 +320,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 final String directory_downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
 
                 clickMenu.setContentView(R.layout.modal_progress);
+                TextView title = (TextView) (clickMenu.findViewById(R.id.modal_progress_content).findViewById(R.id.modal_title));
+                title.setText("Downloading...");
                 final ProgressBar modal_progress = (ProgressBar) clickMenu.findViewById(R.id.modal_progressbar);
                 modal_progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
                 modal_progress.getProgressDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
@@ -396,6 +400,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 btn_yes.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        showSpinner();
                         //toast("Rename " + fileName);
                         F.nl("Rename " + fileName + " (" + hash + ")");
                         String fileNewName = ((EditText) clickMenu.findViewById(R.id.textInput)).getText().toString();
@@ -409,13 +414,14 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                         FoxFileClient.post(page, param, new TextHttpResponseHandler() {
                             @Override
                             public void onSuccess(int statusCode, Header[] headers, String res) {
+                                hideSpinner();
                                 clickMenu.dismiss();
                                 reloadFolder();
                             }
 
                             @Override
                             public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
-                                //hideSpinner();
+                                hideSpinner();
                                 toast("Failed to connect to server");
                                 F.nl("failed");
                             }
