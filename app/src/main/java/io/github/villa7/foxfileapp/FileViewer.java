@@ -41,6 +41,7 @@ public class FileViewer extends Activity {
     private String type;
     private ProgressBar progress;
     private String[] allowedTypes = {".*"};
+    private Context context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,7 +202,7 @@ public class FileViewer extends Activity {
         F.nl("params:");
         //F.pa(params);
         final String directory_downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-        final Dialog clickMenu = new Dialog(this);
+        final Dialog clickMenu = new Dialog(context);
         clickMenu.requestWindowFeature(Window.FEATURE_NO_TITLE);
         clickMenu.getWindow().getAttributes().width = WindowManager.LayoutParams.MATCH_PARENT;
 

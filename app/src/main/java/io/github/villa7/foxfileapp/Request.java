@@ -1,14 +1,12 @@
 package io.github.villa7.foxfileapp;
 
-import com.goebl.david.Webb;
-
 /**
  * Created by kluget on 5/12/2015.
  * CURRENTLY UNUSED
  */
 public class Request extends Thread {
 
-    private String type = "";
+    /*private String type = "";
     private String[] params;
     private Object response;
     private Webb webb;
@@ -104,6 +102,6 @@ public class Request extends Thread {
         }
         System.out.println("response2: " + response);
         return response;
-    }
+    }*/
 
 }
