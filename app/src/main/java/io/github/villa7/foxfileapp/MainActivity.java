@@ -17,7 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
-import com.goebl.david.Webb;
+//import com.goebl.david.Webb;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -31,7 +31,7 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
 
-    private Webb webb;
+    //private Webb webb;
     private static String phpsessid;
     private static SharedPreferences pm;
     private String user, pass;
@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
 
         return super.onOptionsItemSelected(item);
     }
-    public void startSession() {
+    /*public void startSession() {
         webb = Webb.create();
         Request post = new Request(webb, "", "getsessionid");
         post.start();
@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
         //String res = post.send();
         phpsessid = res;
         System.out.println("Got session id: " + phpsessid);
-    }
+    }*/
     public void checkUsernameAndPassword(View v) {
         user = userField.getText().toString();
         pass = passwordField.getText().toString();
@@ -122,7 +122,7 @@ public class MainActivity extends Activity {
             login("login", user, pass);
         }
     }
-    public boolean login(String u, String p) {
+    /*public boolean login(String u, String p) {
         showSpinner();
         Request post = new Request(webb, phpsessid, "login", u, p);
         post.start();
@@ -131,7 +131,7 @@ public class MainActivity extends Activity {
         //toast(res);
         hideSpinner();
         return res.equals("valid");
-    }
+    }*/
 
     private Context context = this;
     private static boolean fff = false;

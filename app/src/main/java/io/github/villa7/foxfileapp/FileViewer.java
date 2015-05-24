@@ -2,6 +2,7 @@ package io.github.villa7.foxfileapp;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +12,7 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.NotificationCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,7 +23,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.goebl.david.Webb;
+//import com.goebl.david.Webb;
 import com.loopj.android.http.BinaryHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
@@ -33,7 +35,7 @@ import java.io.FileOutputStream;
 
 public class FileViewer extends Activity {
 
-    private Webb webb;
+    //private Webb webb;
     private String phpsessid;
     private String user;
     private String fileHash;
@@ -48,7 +50,7 @@ public class FileViewer extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_file_viewer);
 
-        webb = Webb.create();
+        //webb = Webb.create();
 
         progress = (ProgressBar) findViewById(R.id.load_progress);
         progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), android.graphics.PorterDuff.Mode.SRC_IN);
@@ -201,6 +203,15 @@ public class FileViewer extends Activity {
         F.nl("Page: " + page);
         F.nl("params:");
         //F.pa(params);
+
+        final NotificationManager notManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        final NotificationCompat.Builder notBuilder = new NotificationCompat.Builder(context);
+        notBuilder.setContentTitle("FoxFile")
+                .setContentText("Downloading " + fileName)
+                .setSmallIcon(R.mipmap.ic_launcher); //change to actual icon sometime
+        //final int notId;
+        final int notId = (int) Math.random() * 100;
+
         final String directory_downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
         final Dialog clickMenu = new Dialog(context);
         clickMenu.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -229,6 +240,10 @@ public class FileViewer extends Activity {
                 intent.setData(Uri.fromFile(tgtFile));
                 sendBroadcast(intent);
 
+                notBuilder.setContentText("Download complete")
+                        .setProgress(0, 0, false);
+                notManager.notify(notId, notBuilder.build());
+
                 clickMenu.dismiss();
             }
 
@@ -236,6 +251,9 @@ public class FileViewer extends Activity {
             public void onFailure(int statusCode, Header[] headers, byte[] res, Throwable error) {
                 //hideSpinner();
                 clickMenu.dismiss();
+                notBuilder.setContentText("Download Failed")
+                        .setProgress(0, 0, false);
+                notManager.notify(notId, notBuilder.build());
                 toast("Failed to connect to server");
                 F.nl("failed");
             }
@@ -244,6 +262,8 @@ public class FileViewer extends Activity {
                 if (modal_progress.getMax() != totalSize) modal_progress.setMax(totalSize);
                 F.nl("Download progress: " + bytesWritten + " / " + totalSize + " (" + bytesWritten / totalSize * 100 + "%)");
                 modal_progress.setProgress(bytesWritten);
+                notBuilder.setProgress(totalSize, bytesWritten, false);
+                notManager.notify(notId, notBuilder.build());
             }
         });
     }

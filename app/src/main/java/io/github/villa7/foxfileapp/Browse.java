@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.LoaderManager;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
@@ -17,6 +18,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,6 +74,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
     private ListView listView;
     private FileItemAdapter adapter;
     private Dialog clickMenu;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     final int FILE_SELECT_CODE = 0;
 
@@ -91,6 +95,16 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
         F.nl("user:\t" + user + "\nsessid:\t" + phpsessid);
         progress = (ProgressBar) findViewById(R.id.load_progress);
         progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefresh);
+        swipeRefreshLayout.setColorSchemeResources(R.color.primary);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                reloadFolder();
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
 
         listView = (ListView) findViewById(R.id.menubar);
         listView.setAdapter(adapter);
@@ -319,6 +333,14 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 //F.pa(params);
                 final String directory_downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
 
+                final NotificationManager notManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                final NotificationCompat.Builder notBuilder = new NotificationCompat.Builder(context);
+                notBuilder.setContentTitle("FoxFile")
+                        .setContentText("Downloading " + fileName)
+                        .setSmallIcon(R.mipmap.ic_launcher); //change to actual icon sometime
+                //final int notId;
+                final int notId = files.indexOf(hash);
+
                 clickMenu.setContentView(R.layout.modal_progress);
                 TextView title = (TextView) (clickMenu.findViewById(R.id.modal_progress_content).findViewById(R.id.modal_title));
                 title.setText("Downloading...");
@@ -344,6 +366,10 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                         intent.setData(Uri.fromFile(tgtFile));
                         sendBroadcast(intent);
 
+                        notBuilder.setContentText("Download complete")
+                                .setProgress(0, 0, false);
+                        notManager.notify(notId, notBuilder.build());
+
                         clickMenu.dismiss();
                     }
 
@@ -351,6 +377,11 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                     public void onFailure(int statusCode, Header[] headers, byte[] res, Throwable error) {
                         //hideSpinner();
                         clickMenu.dismiss();
+
+                        notBuilder.setContentText("Download failed")
+                                .setProgress(0, 0, false);
+                        notManager.notify(notId, notBuilder.build());
+
                         toast("Failed to connect to server");
                         F.nl("failed");
                     }
@@ -359,6 +390,8 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                         if (modal_progress.getMax() != totalSize) modal_progress.setMax(totalSize);
                         F.nl("Download progress: " + bytesWritten + " / " + totalSize + " (" + bytesWritten / totalSize * 100 + "%)");
                         modal_progress.setProgress(bytesWritten);
+                        notBuilder.setProgress(totalSize, bytesWritten, false);
+                        notManager.notify(notId, notBuilder.build());
                     }
                 });
             }
@@ -476,7 +509,13 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                 final ProgressBar modal_progress = (ProgressBar) clickMenu.findViewById(R.id.modal_progressbar);
                 modal_progress.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
                 modal_progress.getProgressDrawable().setColorFilter(getResources().getColor(R.color.primary), PorterDuff.Mode.SRC_IN);
-//                modal_progress.setMax(100);
+                final NotificationManager notManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                final NotificationCompat.Builder notBuilder = new NotificationCompat.Builder(context);
+                notBuilder.setContentTitle("FoxFile")
+                        .setContentText("Uploading " + fileToUploadName)
+                        .setSmallIcon(R.mipmap.ic_launcher); //change to actual icon sometime
+                //final int notId;
+                final int notId = files.indexOf(hash);
                 // Initiate the upload
 
                 RequestParams param = new RequestParams();
@@ -493,6 +532,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                     public void onSuccess(int statusCode, Header[] headers, String res) {
                         //toast(res);
                         toast(fileToUploadName + " uploaded to " + fileName);
+                        notBuilder.setContentText("Upload complete")
+                                .setProgress(0, 0, false);
+                        notManager.notify(notId, notBuilder.build());
                         F.nl(res);
                         clickMenu.dismiss();
                         reloadFolder();
@@ -501,6 +543,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                     @Override
                     public void onFailure(int statusCode, Header[] headers, String res, Throwable error) {
                         //hideSpinner();
+                        notBuilder.setContentText("Upload Failed")
+                                .setProgress(0, 0, false);
+                        notManager.notify(notId, notBuilder.build());
                         toast("Failed to connect to server");
                         F.nl("failed");
                     }
@@ -509,7 +554,9 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
                     public void onProgress(int bytesWritten, int totalSize) {
                         if (modal_progress.getMax() != totalSize) modal_progress.setMax(totalSize);
                         F.nl("Upload progress: " + bytesWritten + " / " + totalSize + " (" + bytesWritten / totalSize * 100 + "%)");
-                       modal_progress.setProgress(bytesWritten);
+                        modal_progress.setProgress(bytesWritten);
+                        notBuilder.setProgress(totalSize, bytesWritten, false);
+                        notManager.notify(notId, notBuilder.build());
                     }
                 });
                 break;
@@ -589,6 +636,7 @@ public class Browse extends Activity implements OnItemClickListener, OnItemLongC
 
                 listView.setAdapter(adapter);
                 hideSpinner();
+//                swipeRefreshLayout.setRefreshing(false);
 
                 /*for (FileItem f : files) {
                     if (f.getHash().equals(params[1])) {
